@@ -1,0 +1,10 @@
+[Unit]
+Description=Run wan-failover.service every 5 minutes
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=1min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

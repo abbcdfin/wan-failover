@@ -1,0 +1,8 @@
+[Unit]
+Description=WAN Failover Check Service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/bin/bash /home/raftadmin/network-utils/wan-failover/wan-failover.sh
