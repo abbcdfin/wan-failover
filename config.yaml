@@ -1,0 +1,19 @@
+# WAN Failover Configuration
+
+# Name of the backup connection in NetworkManager
+backup_connection_name: "lte0"
+
+# Host to ping for connectivity checking
+check_host: "8.8.8.8"
+
+# Interval in seconds between connectivity checks
+check_interval: 30
+
+# Log file location
+log_file: "/var/log/wan-failover.log"
+
+# Log level (DEBUG, INFO, WARNING, ERROR)
+log_level: "INFO"
+
+# Script to run when enabling backup connection
+enable_backup_script: "/bin/enable_lte.sh"

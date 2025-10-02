@@ -1,8 +1,17 @@
 [Unit]
-Description=WAN Failover Check Service
+Description=WAN Failover
+After=NetworkManager.service
+Wants=NetworkManager.service
 
 [Service]
-Type=oneshot
+Type=simple
 User=root
 Group=root
-ExecStart=/bin/bash /home/raftadmin/network-utils/wan-failover/wan-failover.sh
+ExecStart=python3 /home/raftadmin/network-utils/wan-failover/wan_failover.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
