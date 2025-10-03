@@ -7,6 +7,7 @@ Wants=NetworkManager.service
 Type=simple
 User=root
 Group=root
+WorkingDirectory=/home/raftadmin/network-utils/wan-failover
 ExecStart=python3 /home/raftadmin/network-utils/wan-failover/wan_failover.py
 Restart=always
 RestartSec=10

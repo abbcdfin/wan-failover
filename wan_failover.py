@@ -15,7 +15,8 @@ DEFAULT_CONFIG = {
     'failover_threshold': 2,
     'log_file': '/var/log/wan-failover.log',
     'log_level': 'DEBUG',
-    'enable_backup_script': '/bin/enable_lte.sh'
+    'enable_backup_interface_script': './enable_lte.sh',
+    'reset_backup_interface_script': './reset_lte.sh'
 }
 
 VERSION = "V0.1.0-RC0"
@@ -66,7 +67,8 @@ class NetworkManagerFailover:
         self.backup_connection_name = config['backup_connection_name']
         self.check_host = config['check_host']
         self.check_interval = config['check_interval']
-        self.enable_backup_script = config['enable_backup_script']
+        self.enable_backup_interface_script = config['enable_backup_interface_script']
+        self.reset_backup_interface_script = config['reset_backup_interface_script']
         self.failover_threshold = config['failover_threshold']
         
         # State tracking
@@ -296,7 +298,8 @@ class NetworkManagerFailover:
     def monitor_and_failover(self):
         """Main monitoring loop"""
         self.logger.info("Starting WAN failover monitoring")
-        
+
+        self.deactivate_connection(self.backup_connection_name)
         backup_active = False
         
         while True:
@@ -326,16 +329,17 @@ class NetworkManagerFailover:
                     # Only activate backup after consecutive failures
                     if self.consecutive_failure_count >= self.failover_threshold:
                         self.logger.info("Activating backup connection after consecutive failures")
+                        # Run backup enable script
+                        try:
+                            subprocess.run([self.enable_backup_interface_script], 
+                                           stdout=subprocess.DEVNULL, 
+                                           stderr=subprocess.DEVNULL)
+                        except Exception as e:
+                            self.logger.warning(f"Failed to run {self.enable_backup_script}: {e}")
+
                         if self.activate_connection(self.backup_connection_name):
                             backup_active = True
                             self.consecutive_failure_count = 0  # Reset counter
-                            # Run backup enable script
-                            try:
-                                subprocess.run([self.enable_backup_script], 
-                                             stdout=subprocess.DEVNULL, 
-                                             stderr=subprocess.DEVNULL)
-                            except Exception as e:
-                                self.logger.warning(f"Failed to run {self.enable_backup_script}: {e}")
                     else:
                         self.logger.debug("Waiting for consecutive failures before activating backup")
                 
@@ -361,6 +365,15 @@ class NetworkManagerFailover:
 
                     elif not current_internet_status:
                         self.logger.info("Backup connection up, no internet, reset backup connection.")
+
+                        self.deactivate_connection(self.backup_connection_name)
+                        backup_active = False
+                        try:
+                            subprocess.run([self.reset_backup_interface_script], 
+                                           stdout=subprocess.DEVNULL, 
+                                           stderr=subprocess.DEVNULL)
+                        except Exception as e:
+                            self.logger.warning(f"Failed to run {self.enable_backup_script}: {e}")
                             
                 # Case 3: Primary connection is active and has internet
                 else:
